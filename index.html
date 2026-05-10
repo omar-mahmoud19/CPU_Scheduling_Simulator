@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mega CPU — Scheduling Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/style.css">
+
+  <style>
+   
+  </style>
+</head>
+<body>
+
+<header class="chrome-bar">
+
+  <div class="chrome-logo">
+    <div class="logo-mark">M</div>
+    <span class="chrome-logo-sym">MegaCPU</span>
+  </div>
+
+  <nav class="chrome-nav" id="topNav">
+    <div class="chrome-tab active" id="step1" onclick="scrollToSection('secInput')">
+      <span class="tab-num">01</span> Input
+    </div>
+    <div class="chrome-tab" id="step2" onclick="scrollToSection('secGantt')">
+      <span class="tab-num">02</span> Simulate
+    </div>
+    <div class="chrome-tab" id="step3" onclick="scrollToSection('secResults')">
+      <span class="tab-num">03</span> Results
+    </div>
+    <div class="chrome-tab" id="step4" onclick="scrollToSection('secCompare')">
+      <span class="tab-num">04</span> Compare
+    </div>
+    <div class="chrome-tab" id="step5" onclick="scrollToSection('secConclusion')">
+      <span class="tab-num">05</span> Conclude
+    </div>
+  </nav>
+
+  <div class="chrome-right">
+    <div class="chrome-pill chrome-pill-cyan">
+      <span class="chrome-dot"></span> Priority
+    </div>
+    <div class="chrome-pill chrome-pill-orange">
+      <span class="chrome-dot" style="animation-delay:.7s"></span> SRTF
+    </div>
+    <div class="chrome-status">
+      <div class="status-dot gray" id="inputStatusDot"></div>
+      <span id="inputStatus" class="status-text">Waiting for input</span>
+    </div>
+  </div>
+
+</header>
+
+<div class="main-wrap">
+
+  <aside class="sidebar">
+    <div class="sb-label">Navigation</div>
+
+    <div class="sb-item active" onclick="scrollToSection('secInput')">
+      <div class="sb-ico">①</div>
+      Process Input
+      <span class="sb-step">01</span>
+    </div>
+    <div class="sb-item" onclick="scrollToSection('secGantt')">
+      <div class="sb-ico">▶️</div>
+      Gantt Charts
+      <span class="sb-step">02</span>
+    </div>
+    <div class="sb-item" onclick="scrollToSection('secResults')">
+      <div class="sb-ico">≡</div>
+      Results
+      <span class="sb-step">03</span>
+    </div>
+    <div class="sb-item" onclick="scrollToSection('secCompare')">
+      <div class="sb-ico">⇄</div>
+      Compare
+      <span class="sb-step">04</span>
+    </div>
+    <div class="sb-item" onclick="scrollToSection('secConclusion')">
+      <div class="sb-ico">✓</div>
+      Conclusion
+      <span class="sb-step">05</span>
+    </div>
+
+    <div class="sb-divider"></div>
+
+    <div class="sb-label">Quick Load</div>
+    <div class="sb-scenarios">
+      <div class="sb-sc-title">Preset Scenarios</div>
+      <button class="sb-sc-btn" onclick="loadScenario('A')"> Scenario A</button>
+      <button class="sb-sc-btn" onclick="loadScenario('B')"> Scenario B</button>
+      <button class="sb-sc-btn" onclick="loadScenario('C')"> Scenario C</button>
+    </div>
+  </aside>
+
+  <div style="display:flex; flex-direction:column; min-width:0;">
+
+
+    <div class="content-area">
+
+
+      <section class="sec-block" id="secInput">
+
+        <div class="sec-header">
+          <div class="sec-header-left">
+            <div class="sec-num">01</div>
+            <div class="sec-divider"></div>
+            <div class="sec-title-group">
+              <div class="sec-title">Process Input</div>
+              <div class="sec-desc">Define process parameters for simulation</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec-body">
+
+          <div class="input-convention">
+            <span class="ic-tag">INFO</span>
+            <span>
+              <strong style="color:var(--blue)">Convention:</strong>
+              Lower priority number = Higher priority &nbsp;·&nbsp;
+              Tie-breaking: Arrival Time → PID &nbsp;·&nbsp;
+              Valid priority: 1–99
+            </span>
+          </div>
+
+          <div class="form-strip">
+            <div class="form-strip-label">Add New Process</div>
+            <div class="form-grid" id="inputForm">
+              <div class="form-field">
+                <label>Process ID</label>
+                <input type="text" id="inPid" placeholder="P1" maxlength="6">
+              </div>
+              <div class="form-field">
+                <label>Arrival Time</label>
+                <input type="text" id="inAt" placeholder="0">
+              </div>
+              <div class="form-field">
+                <label>Burst Time</label>
+                <input type="text" id="inBt" placeholder="5">
+              </div>
+              <div class="form-field">
+                <label>Priority <em style="font-style:normal;opacity:.6">(1=high)</em></label>
+                <input type="text" id="inPri" placeholder="1">
+              </div>
+              <div class="form-field">
+                <label>&nbsp;</label>
+                <button class="btn btn-add" onclick="addProcess()">+ &nbsp;Add</button>
+              </div>
+            </div>
+            <div class="error-msg" id="errorMsg"></div>
+          </div>
+
+          <div class="table-bar">
+            <span class="proc-count">Processes &nbsp;<span id="procCount">0</span></span>
+            <button class="btn btn-danger" onclick="clearAll()" style="font-size:11px;padding:7px 14px;border-radius:8px">✕ Clear All</button>
+          </div>
+
+          <div class="table-wrap">
+            <table class="proc-table" id="procTable">
+              <thead>
+                <tr>
+                  <th>PID</th><th>Arrival</th><th>Burst</th><th>Priority</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="procTableBody">
+                <tr>
+                  <td colspan="5">
+                    <div class="empty-state">
+                      <div class="icon">◻</div>
+                      No processes yet. Add at least 2 to simulate.
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+        <div class="run-bar">
+          <div class="run-bar-info">Requires ≥ 2 processes to run simulation</div>
+          <button class="btn btn-run" onclick="runSimulation()">▶️ &nbsp;Run Simulation</button>
+        </div>
+
+      </section>
+
+
+      <div id="resultsSection" style="display:none; display:flex; flex-direction:column; gap:20px;">
+
+        <section class="sec-block" id="secGantt">
+          <div class="sec-header">
+            <div class="sec-header-left">
+              <div class="sec-num">02</div>
+              <div class="sec-divider"></div>
+              <div class="sec-title-group">
+                <div class="sec-title">Gantt Charts</div>
+                <div class="sec-desc">Execution timeline visualization</div>
+              </div>
+            </div>
+          </div>
+          <div class="sec-body">
+            <div class="dual-col">
+              <div class="col-card col-card-priority">
+                <div class="col-card-head">
+                  <span class="col-tag-p">◆ Priority Scheduling</span>
+                  <span class="col-badge">preemptive</span>
+                </div>
+                <div class="col-card-body">
+                  <div class="gantt-wrapper">
+                    <div class="gantt-container" id="ganttPriority"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-card col-card-srtf">
+                <div class="col-card-head">
+                  <span class="col-tag-s">◆ SRTF</span>
+                  <span class="col-badge">preemptive</span>
+                </div>
+                <div class="col-card-body">
+                  <div class="gantt-wrapper">
+                    <div class="gantt-container" id="ganttSRTF"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="sec-block fade-in" id="secResults">
+          <div class="sec-header">
+            <div class="sec-header-left">
+              <div class="sec-num">03</div>
+              <div class="sec-divider"></div>
+              <div class="sec-title-group">
+                <div class="sec-title">Results Tables</div>
+                <div class="sec-desc">Per-process timing breakdown</div>
+              </div>
+            </div>
+          </div>
+          <div class="sec-body">
+            <div class="dual-col">
+              <div class="col-card col-card-priority">
+                <div class="col-card-head"><span class="col-tag-p">Priority Scheduling</span></div>
+                <div class="col-card-body">
+                  <div class="grid4" id="metricsPriority"></div>
+                  <table class="results-table" id="tablePriority"></table>
+                </div>
+              </div>
+              <div class="col-card col-card-srtf">
+                <div class="col-card-head"><span class="col-tag-s">SRTF</span></div>
+                <div class="col-card-body">
+                  <div class="grid4" id="metricsSRTF"></div>
+                  <table class="results-table" id="tableSRTF"></table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="sec-block fade-in" id="secCompare">
+          <div class="sec-header">
+            <div class="sec-header-left">
+              <div class="sec-num">04</div>
+              <div class="sec-divider"></div>
+              <div class="sec-title-group">
+                <div class="sec-title">Comparison Summary</div>
+                <div class="sec-desc">Side-by-side algorithm analysis</div>
+              </div>
+            </div>
+          </div>
+          <div class="sec-body">
+            <div id="comparisonArea"></div>
+          </div>
+        </section>
+
+        <section class="sec-block fade-in" id="secConclusion">
+          <div class="sec-header">
+            <div class="sec-header-left">
+              <div class="sec-num">05</div>
+              <div class="sec-divider"></div>
+              <div class="sec-title-group">
+                <div class="sec-title">Final Conclusion &amp; Analysis</div>
+                <div class="sec-desc">Summary and recommendations</div>
+              </div>
+            </div>
+          </div>
+          <div class="sec-body" id="conclusionArea"></div>
+        </section>
+
+      </div>
+
+      <section class="sec-block">
+        <div class="sec-header" style="background:rgba(244,63,94,.04)">
+          <div class="sec-header-left">
+            <div class="sec-num">✕</div>
+            <div class="sec-divider"></div>
+            <div class="sec-title-group">
+              <div class="sec-title" style="color:var(--rose)">Scenario D — Validation Demo</div>
+              <div class="sec-desc">Trigger error states</div>
+            </div>
+          </div>
+        </div>
+        <div class="sec-body">
+          <div style="font-size:11px;color:var(--text4);margin-bottom:14px;letter-spacing:.04em">
+            Click any button to trigger a validation error:
+          </div>
+          <div class="demo-btns">
+            <button class="btn btn-ghost" onclick="demoError('neg_at')"   style="font-size:11px;padding:7px 14px">AT = -1 (negative)</button>
+            <button class="btn btn-ghost" onclick="demoError('zero_bt')"  style="font-size:11px;padding:7px 14px">BT = 0 (zero)</button>
+            <button class="btn btn-ghost" onclick="demoError('dup_pid')"  style="font-size:11px;padding:7px 14px">Duplicate PID</button>
+            <button class="btn btn-ghost" onclick="demoError('letters')"  style="font-size:11px;padding:7px 14px">Letters in numeric</button>
+            <button class="btn btn-ghost" onclick="demoError('missing')"  style="font-size:11px;padding:7px 14px">Missing fields</button>
+            <button class="btn btn-ghost" onclick="demoError('bad_pri')"  style="font-size:11px;padding:7px 14px">Priority out of range</button>
+            <button class="btn btn-ghost" onclick="demoError('few_procs')" style="font-size:11px;padding:7px 14px">Less than 2 processes</button>
+          </div>
+          <div id="demoErrorMsg" class="error-msg"></div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script src="js/logic.js"></script>
+<script src="js/script.js"></script>
+<script>
+  function scrollToSection(id) {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  const tabs  = ['secInput','secGantt','secResults','secCompare','secConclusion'];
+  const steps = ['step1','step2','step3','step4','step5'];
+  const sbItems = document.querySelectorAll('.sb-item');
+
+  window.addEventListener('scroll', () => {
+    let current = 0;
+    tabs.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el && window.scrollY >= el.offsetTop - 80) current = i;
+    });
+    steps.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('active', i === current);
+    });
+    sbItems.forEach((el, i) => el.classList.toggle('active', i === current));
+  });
+</script>
+</body>
+</html>
